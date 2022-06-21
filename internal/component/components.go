@@ -1,0 +1,136 @@
+package component
+
+import (
+	"net/http"
+
+	"github.com/jay-wlj/go-metric/interfaces"
+	"github.com/jay-wlj/go-metric/internal/config"
+	"github.com/jay-wlj/go-metric/internal/metrics/nop"
+)
+
+var _ interfaces.Components = &components{}
+
+type components struct {
+	cfg       *config.Config
+	baseMeter interfaces.BaseMeter
+}
+
+func NewComponents(cfg *config.Config, baseMeter interfaces.BaseMeter) interfaces.Components {
+	return &components{
+		cfg:       cfg,
+		baseMeter: baseMeter}
+}
+
+func (c *components) NewHTTPServerTimer(route string, ret string, statusCode int) interfaces.ComponentTimer {
+	return newHTTPServerTimer(
+		c.baseMeter,
+		route, ret, statusCode,
+	)
+}
+
+func (c *components) NewHTTPClientTimer(serverDomain, serverPath string, serverRet string, statusCode int) interfaces.ComponentTimer {
+	return newHTTPClientTimer(
+		c.baseMeter,
+		config.AppIdQuerier(c.cfg).GetAppId(serverDomain),
+		serverDomain,
+		serverPath,
+		serverRet,
+		statusCode,
+	)
+}
+
+func (c *components) NewHTTPClientTimerFromResponse(resp *http.Response, serverRet string) interfaces.ComponentTimer {
+	if resp == nil {
+		return nop.ComponentTimer
+	}
+
+	return newHTTPClientTimer(
+		c.baseMeter,
+		config.AppIdQuerier(c.cfg).GetAppId(resp.Request.Host),
+		resp.Request.Host,
+		resp.Request.URL.Path,
+		serverRet,
+		resp.StatusCode,
+	)
+}
+
+func (c *components) NewMysqlTimer(sql string, resource string, hasError bool) interfaces.ComponentTimer {
+	return newMysqlTimer(
+		c.baseMeter,
+		sql,
+		resource,
+		hasError,
+	)
+}
+
+func (c *components) NewRedisTimer(cmd string, resource string, hasError bool) interfaces.ComponentTimer {
+	return newRedisTimer(
+		c.baseMeter,
+		cmd,
+		resource,
+		hasError,
+	)
+}
+
+func (c *components) NewKafkaProduceTimer(topic string, resource string, hasError bool) interfaces.ComponentTimer {
+	return newKafkaTimer(
+		c.baseMeter,
+		topic,
+		resource,
+		hasError,
+	)
+}
+
+func (c *components) NewKafkaConsumeCounter(topic string, resource string) interfaces.ComponentCounter {
+	return newKafkaConsumeCounter(
+		c.baseMeter,
+		topic,
+		resource,
+	)
+}
+
+func (c *components) NewESTimer(api, index, resource string, hasError bool) interfaces.ComponentTimer {
+	return newESTimer(
+		c.baseMeter,
+		api,
+		index,
+		resource,
+		hasError,
+	)
+}
+
+func (c *components) NewHBaseTimer(cmd, resource string, hasError bool) interfaces.ComponentTimer {
+	return newHBaseTimer(
+		c.baseMeter,
+		cmd,
+		resource,
+		hasError,
+	)
+}
+
+func (c *components) NewRMQProduceTimer(exchange, resource string, hasError bool) interfaces.ComponentTimer {
+	return newRMQProduceTimer(
+		c.baseMeter,
+		exchange,
+		resource,
+		hasError,
+	)
+}
+
+func (c *components) NewRMQConsumeCounter(queue, resource string) interfaces.ComponentCounter {
+	return newRMQConsumeCounter(
+		c.baseMeter,
+		queue,
+		resource,
+	)
+}
+
+func (c *components) NewMongoTimer(command, collection, resource string, hasError bool) interfaces.ComponentTimer {
+	return newMongoTimer(
+		c.baseMeter,
+		command,
+		collection,
+		resource,
+		hasError,
+	)
+}
