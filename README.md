@@ -1,6 +1,6 @@
 # README
 
-货拉拉 golang 监控 SDK, 基于 open-telemetry SDK
+golang 监控 SDK, 基于 open-telemetry SDK
 
 (目前仅支持指标，trace功能根据用户需求决定是否开发)
 
@@ -10,7 +10,7 @@
 
 ```golang
 
-go get  github.com/jay-wlj/go-metric@v1.1.2
+go get github.com/jay-wlj/go-metric
 
 
 ```
