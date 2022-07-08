@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -12,6 +13,8 @@ import (
 func main() {
 	_ = gometric.NewMeter(
 		gometric.WithMeterProvider(gometric.PrometheusMeterProvider),
+		gometric.WithPush("10.10.21.37:7072", 15*time.Second),
+		gometric.WithPrometheusPort(0),
 	)
 	r := gin.New()
 	r.Use(otelgin.HTTPServerTimerMiddleware())

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -28,10 +29,20 @@ func GetConfig() *Config {
 
 type MeterProviderType int
 
+type PushCfg struct {
+	PushAddress string        // push url
+	PushPeriod  time.Duration // push period
+}
+
+type ConsulCfg struct {
+	ConsulAddress string // prometheus related config
+	ConsulToken   string // prometheus related config
+}
+
 type Config struct {
-	ConsulAddress    string // prometheus related config
-	ConsulToken      string // prometheus related config
-	PrometheusPort   int    // prometheus related config
+	PrometheusPort   int // prometheus related config
+	Consul           *ConsulCfg
+	Push             *PushCfg // push cfg
 	MeterProvider    MeterProviderType
 	LocalIP          string
 	Env              string
@@ -58,17 +69,27 @@ func initSingletonConfig() {
 	}
 
 	if os.Getenv("dtl.consul.host") != "" {
-		singletonConfig.ConsulAddress = fmt.Sprintf("%s:%d", os.Getenv("dtl.consul.host"), consulPort)
+		if singletonConfig.Consul == nil {
+			singletonConfig.Consul = new(ConsulCfg)
+		}
+		singletonConfig.Consul.ConsulAddress = fmt.Sprintf("%s:%d", os.Getenv("dtl.consul.host"), consulPort)
 	}
 	if os.Getenv("HOST_IP") != "" {
-		singletonConfig.ConsulAddress = fmt.Sprintf("%s:%d", os.Getenv("HOST_IP"), consulPort)
+		if singletonConfig.Consul == nil {
+			singletonConfig.Consul = new(ConsulCfg)
+		}
+		singletonConfig.Consul.ConsulAddress = fmt.Sprintf("%s:%d", os.Getenv("HOST_IP"), consulPort)
 	}
 
 	if os.Getenv("dtl.consul.token") != "" {
-		singletonConfig.ConsulToken = os.Getenv("dtl.consul.token")
+		if singletonConfig.Consul != nil {
+			singletonConfig.Consul.ConsulToken = os.Getenv("dtl.consul.token")
+		}
 	}
 	if os.Getenv("CONSUL_TOKEN") != "" {
-		singletonConfig.ConsulToken = os.Getenv("CONSUL_TOKEN")
+		if singletonConfig.Consul != nil {
+			singletonConfig.Consul.ConsulToken = os.Getenv("CONSUL_TOKEN")
+		}
 	}
 
 	prometheusPort, err := strconv.ParseInt(os.Getenv("dtl.monitor.port"), 10, 64)
