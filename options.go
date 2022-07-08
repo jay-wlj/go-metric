@@ -1,6 +1,8 @@
 package gometric
 
 import (
+	"time"
+
 	"github.com/jay-wlj/go-metric/interfaces"
 	"github.com/jay-wlj/go-metric/internal/config"
 )
@@ -29,13 +31,31 @@ type consulOption struct {
 }
 
 func (co *consulOption) ApplyConfig(c *config.Config) {
-	c.ConsulAddress = co.address
-	c.ConsulToken = co.token
+	c.Consul = &config.ConsulCfg{
+		ConsulAddress: co.address,
+		ConsulToken:   co.token,
+	}
 }
 
 // WithConsul 用于设置consul的地址, 如 "consul-dev.my.cn:8500"
 func WithConsul(address string, token string) interfaces.Option {
 	return &consulOption{address: address, token: token}
+}
+
+type pushOption struct {
+	address string
+	period  time.Duration
+}
+
+func (co *pushOption) ApplyConfig(c *config.Config) {
+	c.Push = &config.PushCfg{
+		PushAddress: co.address,
+		PushPeriod:  co.period,
+	}
+}
+
+func WithPush(address string, period time.Duration) interfaces.Option {
+	return &pushOption{address: address, period: period}
 }
 
 type appidOption struct{ appid string }

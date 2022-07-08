@@ -130,10 +130,13 @@ func (p *promHTTPServer) Register() {
 }
 
 func (p *promHTTPServer) checkConsulClient() bool {
-	if p.consulClient == nil {
+	if p.cfg.Consul == nil {
+		return false
+	}
+	if p.cfg.Consul != nil && p.consulClient == nil {
 		consulCfg := consulapi.DefaultConfig()
-		consulCfg.Address = p.cfg.ConsulAddress
-		consulCfg.Token = p.cfg.ConsulToken
+		consulCfg.Address = p.cfg.Consul.ConsulAddress
+		consulCfg.Token = p.cfg.Consul.ConsulToken
 		client, err := consulapi.NewClient(consulCfg)
 		if err != nil {
 			p.cfg.WriteErrorOrNot(fmt.Sprintf(

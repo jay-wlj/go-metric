@@ -1,6 +1,7 @@
 package prom
 
 import (
+	cli_prom "github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
 	otelglobal "go.opentelemetry.io/otel/metric/global"
@@ -44,7 +45,8 @@ type PrometheusMeter struct {
 	meter            metric.Meter
 	runtimeCollector runtime.Collector
 	// http server
-	server HTTPServer
+	servers []HTTPServer
+	// pushServer HTTPServer
 	// used for checker
 	allMetricsLock sync.RWMutex
 	allMetrics     map[string]*seriesGroup // metricname->seriesID group
@@ -55,6 +57,7 @@ type PrometheusMeter struct {
 
 func NewPrometheusMeter(cfg *config.Config) (*PrometheusMeter, error) {
 	prometheusCfg := prometheus.Config{
+		Registry:                   cli_prom.NewRegistry(),
 		DefaultHistogramBoundaries: defaultHistogramBoundaries}
 
 	ctrl := controller.New(
@@ -75,11 +78,11 @@ func NewPrometheusMeter(cfg *config.Config) (*PrometheusMeter, error) {
 	otelglobal.SetMeterProvider(exporter.MeterProvider())
 
 	pm := PrometheusMeter{
-		cfg:        cfg,
-		running:    1,
-		onCh:       make(chan struct{}),
-		offCh:      make(chan struct{}),
-		server:     newPromHTTPServer(cfg, exporter.ServeHTTP),
+		cfg:     cfg,
+		running: 1,
+		onCh:    make(chan struct{}),
+		offCh:   make(chan struct{}),
+		// server:     newPromHTTPServer(cfg, exporter.ServeHTTP),
 		allMetrics: make(map[string]*seriesGroup),
 		meter: otelglobal.Meter(
 			PrometheusMeterName,
@@ -88,9 +91,20 @@ func NewPrometheusMeter(cfg *config.Config) (*PrometheusMeter, error) {
 		gaugesRegistry: make(map[string]*prom.GaugeMetric),
 	}
 
+	// push方式不需要exporter
+	if cfg.PrometheusPort > 0 {
+		pm.servers = append(pm.servers, newPromHTTPServer(cfg, exporter.ServeHTTP))
+	}
+	if cfg.Push != nil {
+		pm.servers = append(pm.servers, newPromPushServer(cfg, prometheusCfg.Registry))
+	}
+
 	pm.runtimeCollector = runtime.NewCollector(cfg, &pm)
 	pm.runtimeCollector.Start()
-	pm.server.Start()
+
+	for _, server := range pm.servers {
+		server.Start()
+	}
 
 	go pm.signalListener()
 	return &pm, nil
@@ -121,7 +135,9 @@ func (pm *PrometheusMeter) signalListener() {
 			}
 			pm.cfg.WriteInfoOrNot("WithRunning=true, meter starting...")
 			pm.runtimeCollector.Start()
-			pm.server.Start()
+			for _, server := range pm.servers {
+				server.Start()
+			}
 			// replace meter
 			var m interfaces.Meter = pm
 			global.SetMeter(m)
@@ -133,7 +149,9 @@ func (pm *PrometheusMeter) signalListener() {
 			global.SetNopMeter()
 			pm.cfg.WriteInfoOrNot("WithRunning=false, meter stopping...")
 			pm.runtimeCollector.Stop()
-			pm.server.Stop()
+			for _, server := range pm.servers {
+				server.Stop()
+			}
 			// clear internal gauges
 			pm.gaugesLock.Lock()
 			pm.gaugesRegistry = make(map[string]*prom.GaugeMetric)
