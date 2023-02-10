@@ -22,14 +22,14 @@ type ComponentCounter interface {
 // Components 用于封装中间件的埋点
 type Components interface {
 	// NewHTTPServerTimer HTTP请求服务端埋点 （当前服务被调的埋点）
-	// dtlci_api_request_seconds
+	// dacs_api_request_seconds
 	//        path  (*http.Request).URL.Path
 	//        ret    响应 body 的ret码, 非数字时统一为 '-'
 	//        status (*http.Response).StatusCode
 	NewHTTPServerTimer(path string, ret string, statusCode int) ComponentTimer
 
 	// NewHTTPClientTimer : HTTP请求客户端埋点 （当前服务调用下游服务时埋点）
-	// dtlci_service_http_call_seconds
+	// dacs_service_http_call_seconds
 	//        from_appid，环境中获取
 	//        to_appid, 根据serverDomain 从lalaplat2获取
 	//        client_ip，环境中获取
@@ -49,7 +49,7 @@ type Components interface {
 	NewHTTPClientTimerFromResponse(resp *http.Response, serverRet string) ComponentTimer
 
 	// NewMysqlTimer : mysql埋点
-	// dtlci_mysql_request_seconds
+	// dacs_mysql_request_seconds
 	//        cmd，select/insert/delete/update
 	//        resource, 资源
 	//        sql, 小写的sql串，变量被占位符填充
@@ -61,7 +61,7 @@ type Components interface {
 	NewMysqlTimer(sql string, resource string, hasError bool) ComponentTimer
 
 	// NewRedisTimer : redis 埋点
-	// dtlci_redis_request_seconds
+	// dacs_redis_request_seconds
 	//        cmd，get / set/ del
 	//        resource, 资源
 	//        error, "1" / "0"
@@ -72,7 +72,7 @@ type Components interface {
 	NewRedisTimer(cmd string, resource string, hasError bool) ComponentTimer
 
 	// NewESTimer elastic-search 请求埋点
-	// dtlci_es_request_seconds
+	// dacs_es_request_seconds
 	//        api, es api
 	//        index, 索引
 	//        resource, 资源
@@ -85,7 +85,7 @@ type Components interface {
 	NewESTimer(api, index, resource string, hasError bool) ComponentTimer
 
 	// NewHBaseTimer hbase 请求埋点
-	// dtlci_hbase_request_seconds
+	// dacs_hbase_request_seconds
 	//        cmd, hbase 命令
 	//        resource, 资源
 	//        error, "1" / "0"
@@ -96,7 +96,7 @@ type Components interface {
 	NewHBaseTimer(cmd, resource string, hasError bool) ComponentTimer
 
 	// NewRMQProduceTimer rmq 生产埋点
-	// dtlci_rabbit_producer_seconds histogram
+	// dacs_rabbit_producer_seconds histogram
 	//        exchange, 交换机名称
 	//        resource, 资源
 	//        error, "1" / "0"
@@ -107,7 +107,7 @@ type Components interface {
 	NewRMQProduceTimer(exchange, resource string, hasError bool) ComponentTimer
 
 	// NewRMQConsumeCounter rmq 消费埋点
-	// dtlci_rabbit_consumer_total counter
+	// dacs_rabbit_consumer_total counter
 	//        queue, 队列
 	//        resource, 资源
 	// ---------------------------
@@ -116,7 +116,7 @@ type Components interface {
 	NewRMQConsumeCounter(queue, resource string) ComponentCounter
 
 	// NewMongoTimer mongo 请求埋点
-	// dtlci_mongo_request_seconds
+	// dacs_mongo_request_seconds
 	//        command, mongo 命令, find/insert/update/delete等
 	//        collection, 集合
 	//        resource，资源
@@ -129,7 +129,7 @@ type Components interface {
 	NewMongoTimer(command, collection, resource string, hasError bool) ComponentTimer
 
 	// NewKafkaProduceTimer : kafka 生产埋点
-	// dtlci_kafka_producer_seconds
+	// dacs_kafka_producer_seconds
 	//        topic,
 	//        resource, 资源
 	//        error, "1" / "0"
@@ -140,7 +140,7 @@ type Components interface {
 	NewKafkaProduceTimer(topic string, resource string, hasError bool) ComponentTimer
 
 	// NewKafkaConsumeCounter : kafka 消费埋点
-	// dtlci_kafka_consumer_total
+	// dacs_kafka_consumer_total
 	//        topic,
 	//        resource, 资源
 	// ---------------------------

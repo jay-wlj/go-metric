@@ -5,7 +5,7 @@ import (
 	"github.com/jay-wlj/go-metric/internal/labels"
 )
 
-const kafkaConsumeMetricName = "dtlci_kafka_consumer_total"
+const kafkaConsumeMetricName = "dacs_kafka_consumer_total"
 
 func newKafkaConsumeCounter(
 	meter interfaces.BaseMeter,

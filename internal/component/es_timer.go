@@ -5,7 +5,7 @@ import (
 	"github.com/jay-wlj/go-metric/internal/labels"
 )
 
-const esTimerMetricName = "dtlci_es_request_seconds"
+const esTimerMetricName = "dacs_es_request_seconds"
 
 func newESTimer(
 	meter interfaces.BaseMeter,

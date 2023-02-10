@@ -5,7 +5,7 @@ import (
 	"github.com/jay-wlj/go-metric/internal/labels"
 )
 
-const hbaseTimerMetricName = "dtlci_hbase_request_seconds"
+const hbaseTimerMetricName = "dacs_hbase_request_seconds"
 
 func newHBaseTimer(
 	meter interfaces.BaseMeter,

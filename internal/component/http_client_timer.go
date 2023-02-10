@@ -6,7 +6,7 @@ import (
 	"github.com/jay-wlj/go-metric/internal/labels"
 )
 
-const httpClientTimerMetricName = "dtlci_service_http_call_seconds"
+const httpClientTimerMetricName = "dacs_service_http_call_seconds"
 
 func newHTTPClientTimer(
 	meter interfaces.BaseMeter,
