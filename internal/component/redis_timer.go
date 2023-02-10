@@ -5,7 +5,7 @@ import (
 	"github.com/jay-wlj/go-metric/internal/labels"
 )
 
-const redisMetricName = "dtlci_redis_request_seconds"
+const redisMetricName = "dacs_redis_request_seconds"
 
 func newRedisTimer(
 	meter interfaces.BaseMeter,

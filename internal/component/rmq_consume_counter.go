@@ -5,7 +5,7 @@ import (
 	"github.com/jay-wlj/go-metric/internal/labels"
 )
 
-const rmqConsumeMetricName = "dtlci_rabbit_consumer_total"
+const rmqConsumeMetricName = "dacs_rabbit_consumer_total"
 
 func newRMQConsumeCounter(
 	meter interfaces.BaseMeter,

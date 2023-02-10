@@ -5,7 +5,7 @@ import (
 	"github.com/jay-wlj/go-metric/internal/labels"
 )
 
-const rmqProduceTimerMetricName = "dtlci_rabbit_producer_seconds"
+const rmqProduceTimerMetricName = "dacs_rabbit_producer_seconds"
 
 func newRMQProduceTimer(
 	meter interfaces.BaseMeter,

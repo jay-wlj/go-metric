@@ -5,7 +5,7 @@ import (
 	"github.com/jay-wlj/go-metric/internal/labels"
 )
 
-const mongoTimerMetricName = "dtlci_mongo_request_seconds"
+const mongoTimerMetricName = "dacs_mongo_request_seconds"
 
 func newMongoTimer(
 	meter interfaces.BaseMeter,

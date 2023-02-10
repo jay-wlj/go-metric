@@ -5,7 +5,7 @@ import (
 	"github.com/jay-wlj/go-metric/internal/labels"
 )
 
-const mysqlMetricName = "dtlci_mysql_request_seconds"
+const mysqlMetricName = "dacs_mysql_request_seconds"
 
 func newMysqlTimer(
 	meter interfaces.BaseMeter,

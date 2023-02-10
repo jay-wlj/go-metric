@@ -5,7 +5,7 @@ import (
 	"github.com/jay-wlj/go-metric/internal/labels"
 )
 
-const kafkaProduceMetricName = "dtlci_kafka_producer_seconds"
+const kafkaProduceMetricName = "dacs_kafka_producer_seconds"
 
 func newKafkaTimer(
 	meter interfaces.BaseMeter,
