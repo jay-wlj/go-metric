@@ -81,11 +81,17 @@ func (c *collector) Stop() {
 }
 
 func (c *collector) newGaugeWithTags(metricName string) interfaces.Gauge {
-	return c.meter.NewGauge(metricName).AddTag("dtl_data_type", "base")
+	if c.cfg.BaseLabel == nil || c.cfg.BaseLabel.DataType == "" {
+		return c.meter.NewGauge(metricName)
+	}
+	return c.meter.NewGauge(metricName).AddTag(c.cfg.BaseLabel.DataType, "base")
 }
 
 func (c *collector) newCounterWithTags(metricName string) interfaces.Counter {
-	return c.meter.NewCounter(metricName).AddTag("dtl_data_type", "base")
+	if c.cfg.BaseLabel == nil || c.cfg.BaseLabel.DataType == "" {
+		return c.meter.NewCounter(metricName)
+	}
+	return c.meter.NewCounter(metricName).AddTag(c.cfg.BaseLabel.DataType, "base")
 }
 
 func (c *collector) collectMemStats() {

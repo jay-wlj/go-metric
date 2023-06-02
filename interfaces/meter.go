@@ -1,9 +1,13 @@
 package interfaces
 
-import "time"
+import (
+	"net/http"
+	"time"
+)
 
 type BaseMeter interface {
-	WithRunning(on bool) // 设置为false，SDK切换为空实现，关闭指标的收集功能
+	GetHandler() http.Handler // 返回
+	WithRunning(on bool)      // 设置为false，SDK切换为空实现，关闭指标的收集功能
 	NewCounter(metricName string) Counter
 	NewGauge(metricName string) Gauge
 	NewTimer(metricName string) Timer

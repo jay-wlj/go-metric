@@ -1,6 +1,8 @@
 package prom
 
 import (
+	"net/http"
+
 	cli_prom "github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/metric"
@@ -53,6 +55,8 @@ type PrometheusMeter struct {
 	// internal metrics registry
 	gaugesLock     sync.RWMutex
 	gaugesRegistry map[string]*prom.GaugeMetric // observe
+
+	handler http.HandlerFunc // http handler func for metrics
 }
 
 func NewPrometheusMeter(cfg *config.Config) (*PrometheusMeter, error) {
@@ -89,6 +93,7 @@ func NewPrometheusMeter(cfg *config.Config) (*PrometheusMeter, error) {
 			metric.WithInstrumentationVersion(sdkVersion),
 		),
 		gaugesRegistry: make(map[string]*prom.GaugeMetric),
+		handler:        exporter.ServeHTTP,
 	}
 
 	// push方式不需要exporter
@@ -108,6 +113,10 @@ func NewPrometheusMeter(cfg *config.Config) (*PrometheusMeter, error) {
 
 	go pm.signalListener()
 	return &pm, nil
+}
+
+func (pm *PrometheusMeter) GetHandler() http.Handler {
+	return pm.handler
 }
 
 func (pm *PrometheusMeter) WithRunning(on bool) {
@@ -168,6 +177,9 @@ func (pm *PrometheusMeter) NewCounter(metricName string) interfaces.Counter {
 	if err != nil {
 		return &nop.Counter
 	}
+	if pm.cfg.BaseLabel == nil || pm.cfg.BaseLabel.MetricyType == "" {
+		return prom.NewCounter(metricName, pm, c)
+	}
 	return prom.NewCounter(metricName, pm, c).AddTag("dtl_metric_type", "counter")
 }
 
@@ -179,6 +191,9 @@ func (pm *PrometheusMeter) NewGauge(metricName string) interfaces.Gauge {
 	gaugeMetric, ok := pm.gaugesRegistry[metricName]
 	pm.gaugesLock.RUnlock()
 	if ok {
+		if pm.cfg.BaseLabel == nil || pm.cfg.BaseLabel.MetricyType == "" {
+			return gaugeMetric.NewGaugeSeries()
+		}
 		return gaugeMetric.NewGaugeSeries().AddTag("dtl_metric_type", "gauge")
 	}
 	// not exist before
@@ -194,6 +209,9 @@ func (pm *PrometheusMeter) NewGauge(metricName string) interfaces.Gauge {
 		}
 		pm.gaugesRegistry[metricName] = gaugeMetric
 	}
+	if pm.cfg.BaseLabel == nil || pm.cfg.BaseLabel.MetricyType == "" {
+		return gaugeMetric.NewGaugeSeries()
+	}
 	return gaugeMetric.NewGaugeSeries().AddTag("dtl_metric_type", "gauge")
 }
 
@@ -204,6 +222,9 @@ func (pm *PrometheusMeter) NewTimer(metricName string) interfaces.Timer {
 	t, err := pm.meter.NewFloat64Histogram(metricName)
 	if err != nil {
 		return &nop.Timer
+	}
+	if pm.cfg.BaseLabel == nil || pm.cfg.BaseLabel.MetricyType == "" {
+		return prom.NewTimer(metricName, pm, t)
 	}
 	return prom.NewTimer(metricName, pm, t).AddTag("dtl_metric_type", "histogram")
 }

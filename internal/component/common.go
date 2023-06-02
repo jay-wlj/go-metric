@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/jay-wlj/go-metric/interfaces"
+	"github.com/jay-wlj/go-metric/internal/config"
 )
 
 const (
@@ -58,7 +59,11 @@ const (
 )
 
 func newComponentTimer(timer interfaces.Timer) *componentTimer {
-	timer.AddTag("dtl_data_type", "base")
+	baseLabel := config.GetConfig().BaseLabel
+	if baseLabel != nil && baseLabel.DataType != "" {
+		timer.AddTag(baseLabel.DataType, "base")
+	}
+
 	return &componentTimer{timer: timer}
 }
 
@@ -72,7 +77,10 @@ func (holder *componentTimer) UpdateInMillis(m float64)    { holder.timer.Update
 func (holder *componentTimer) UpdateInSeconds(s float64)   { holder.timer.UpdateInSeconds(s) }
 
 func newComponentCounter(counter interfaces.Counter) interfaces.ComponentCounter {
-	counter.AddTag("dtl_data_type", "base")
+	baseLabel := config.GetConfig().BaseLabel
+	if baseLabel != nil && baseLabel.DataType != "" {
+		counter.AddTag(baseLabel.DataType, "base")
+	}
 	return &componentCounter{counter: counter}
 }
 

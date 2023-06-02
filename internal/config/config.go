@@ -39,11 +39,22 @@ type ConsulCfg struct {
 	ConsulToken   string // prometheus related config
 }
 
+// base label names in all time series
+type BaseLabelCfg struct {
+	Appid       string
+	Env         string
+	IP          string
+	DataType    string
+	MetricyType string
+}
+
 type Config struct {
-	PrometheusPort   int // prometheus related config
-	Consul           *ConsulCfg
-	Push             *PushCfg // push cfg
-	MeterProvider    MeterProviderType
+	PrometheusPort int // prometheus related config
+	Consul         *ConsulCfg
+	Push           *PushCfg // push cfg
+	MeterProvider  MeterProviderType
+	BaseLabel      *BaseLabelCfg
+	// PrefixBaseLabl   string
 	LocalIP          string
 	Env              string
 	AppId            string
@@ -99,6 +110,14 @@ func initSingletonConfig() {
 		singletonConfig.PrometheusPort = int(prometheusPort)
 	}
 	singletonConfig.LocalIP = singletonConfig.getLocalIP()
+
+	singletonConfig.BaseLabel = &BaseLabelCfg{
+		Appid:       "appid",
+		Env:         "env",
+		IP:          "ip",
+		DataType:    "data_type",
+		MetricyType: "metricy_type",
+	}
 }
 
 func (cfg *Config) IsTest() bool {

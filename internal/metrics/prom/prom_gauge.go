@@ -8,6 +8,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/jay-wlj/go-metric/interfaces"
+	"github.com/jay-wlj/go-metric/internal/config"
 	"github.com/jay-wlj/go-metric/internal/labels"
 	"github.com/jay-wlj/go-metric/internal/metrics"
 )
@@ -102,7 +103,11 @@ func (pgs *GaugeSeries) WithTags(tags map[string]string) interfaces.Gauge {
 		return pgs
 	}
 	// fix: WithTags 会覆盖 metric_type 类型
-	pgs.AddTag("dtl_metric_type", "gauge")
+	baseLabel := config.GetConfig().BaseLabel
+	if baseLabel != nil && baseLabel.MetricyType != "" {
+		pgs.AddTag(baseLabel.MetricyType, "gauge")
+	}
+	// pgs.AddTag("dtl_metric_type", "gauge")
 	for k, v := range tags {
 		pgs.AddTag(k, v)
 	}

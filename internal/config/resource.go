@@ -14,10 +14,32 @@ func DtlResource() *resource.Resource {
 }
 
 func DtlLabels() labels.Labels {
-	return labels.Labels{
-		attribute.KeyValue{Key: "dtl_appid", Value: attribute.StringValue(GetConfig().AppId)},
-		attribute.KeyValue{Key: "dtl_env", Value: attribute.StringValue(GetConfig().GetEnv())},
-		attribute.KeyValue{Key: "dtl_ip", Value: attribute.StringValue(GetConfig().LocalIP)},
-		attribute.KeyValue{Key: "dtl_data_type", Value: attribute.StringValue("business")},
+
+	baseLabel := GetConfig().BaseLabel
+
+	var ret labels.Labels
+	if baseLabel != nil {
+		if baseLabel.Appid != "" {
+			ret = append(ret, attribute.KeyValue{Key: attribute.Key(baseLabel.Appid), Value: attribute.StringValue(GetConfig().AppId)})
+		}
+		if baseLabel.Env != "" {
+			ret = append(ret, attribute.KeyValue{Key: attribute.Key(baseLabel.Env), Value: attribute.StringValue(GetConfig().GetEnv())})
+		}
+		if baseLabel.IP != "" {
+			ret = append(ret, attribute.KeyValue{Key: attribute.Key(baseLabel.IP), Value: attribute.StringValue(GetConfig().LocalIP)})
+		}
+		if baseLabel.DataType != "" {
+			ret = append(ret, attribute.KeyValue{Key: attribute.Key(baseLabel.DataType), Value: attribute.StringValue("business")})
+		}
+	} else {
+		// the default base label names
+		ret = labels.Labels{
+			attribute.KeyValue{Key: "dtl_appid", Value: attribute.StringValue(GetConfig().AppId)},
+			attribute.KeyValue{Key: "dtl_env", Value: attribute.StringValue(GetConfig().GetEnv())},
+			attribute.KeyValue{Key: "dtl_ip", Value: attribute.StringValue(GetConfig().LocalIP)},
+			attribute.KeyValue{Key: "dtl_data_type", Value: attribute.StringValue("business")},
+		}
 	}
+
+	return ret
 }

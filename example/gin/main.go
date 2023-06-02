@@ -17,6 +17,7 @@ func main() {
 		gometric.WithPush("10.10.21.137:7073", 15*time.Second),
 		gometric.WithPrometheusPort(0),
 		gometric.WithAppID("watermark_server"),
+		gometric.WithPrefixBaseLabelName("dtl_"),
 	)
 	r := gin.New()
 	r.Use(otelgin.HTTPServerTimerMiddleware())
@@ -33,6 +34,10 @@ func main() {
 			"name": "unknown",
 			"id":   id,
 		})
+	})
+	r.GET("/metrics", func(c *gin.Context) {
+		h := gometric.GetGlobalMeter().GetHandler()
+		h.ServeHTTP(c.Writer, c.Request)
 	})
 
 	_ = r.Run(":8080")

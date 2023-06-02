@@ -2,6 +2,7 @@ package nop
 
 import (
 	"fmt"
+	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -61,6 +62,10 @@ func (nm *Meter) shouldReport() bool {
 	lastReportTime := atomic.LoadInt64(&nm.lastReportAt)
 	time.Unix(lastReportTime, 0)
 	return time.Now().After(time.Unix(lastReportTime, 0).Add(reportIntervalThreshold))
+}
+
+func (pm *Meter) GetHandler() http.Handler {
+	return nil
 }
 
 func (nm *Meter) WithRunning(_ bool) {
