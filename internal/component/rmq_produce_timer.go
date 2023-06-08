@@ -9,10 +9,14 @@ const rmqProduceTimerMetricName = "dacs_rabbit_producer_seconds"
 
 func newRMQProduceTimer(
 	meter interfaces.BaseMeter,
-	exchange, resource string,
+	metricNamePrefix, exchange, resource string,
 	hasError bool,
 ) interfaces.ComponentTimer {
-	timer := meter.NewTimer(rmqProduceTimerMetricName)
+	metricName := esTimerMetricName
+	if metricNamePrefix != "" {
+		metricName = metricNamePrefix + "rabbit_producer_seconds"
+	}
+	timer := meter.NewTimer(metricName)
 	timer.AddTag(exchangeKey, exchange)
 	timer.AddTag(resourceKey, labels.Filter.FilterResource(resource))
 	if hasError {

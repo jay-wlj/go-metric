@@ -9,10 +9,14 @@ const mongoTimerMetricName = "dacs_mongo_request_seconds"
 
 func newMongoTimer(
 	meter interfaces.BaseMeter,
-	command, collection, resource string,
+	metricNamePrefix, command, collection, resource string,
 	hasError bool,
 ) interfaces.ComponentTimer {
-	timer := meter.NewTimer(mongoTimerMetricName)
+	metricName := esTimerMetricName
+	if metricNamePrefix != "" {
+		metricName = metricNamePrefix + "mongo_request_seconds"
+	}
+	timer := meter.NewTimer(metricName)
 	timer.AddTag(commandKey, command)
 	timer.AddTag(collectionKey, collection)
 	timer.AddTag(resourceKey, labels.Filter.FilterResource(resource))

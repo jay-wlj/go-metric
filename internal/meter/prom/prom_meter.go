@@ -180,7 +180,7 @@ func (pm *PrometheusMeter) NewCounter(metricName string) interfaces.Counter {
 	if pm.cfg.BaseLabel == nil || pm.cfg.BaseLabel.MetricyType == "" {
 		return prom.NewCounter(metricName, pm, c)
 	}
-	return prom.NewCounter(metricName, pm, c).AddTag("dtl_metric_type", "counter")
+	return prom.NewCounter(metricName, pm, c).AddTag(pm.cfg.PrefixBaseLabel+"metric_type", "counter")
 }
 
 func (pm *PrometheusMeter) NewGauge(metricName string) interfaces.Gauge {
@@ -194,7 +194,7 @@ func (pm *PrometheusMeter) NewGauge(metricName string) interfaces.Gauge {
 		if pm.cfg.BaseLabel == nil || pm.cfg.BaseLabel.MetricyType == "" {
 			return gaugeMetric.NewGaugeSeries()
 		}
-		return gaugeMetric.NewGaugeSeries().AddTag("dtl_metric_type", "gauge")
+		return gaugeMetric.NewGaugeSeries().AddTag(pm.cfg.PrefixBaseLabel+"metric_type", "gauge")
 	}
 	// not exist before
 	pm.gaugesLock.Lock()
@@ -212,7 +212,7 @@ func (pm *PrometheusMeter) NewGauge(metricName string) interfaces.Gauge {
 	if pm.cfg.BaseLabel == nil || pm.cfg.BaseLabel.MetricyType == "" {
 		return gaugeMetric.NewGaugeSeries()
 	}
-	return gaugeMetric.NewGaugeSeries().AddTag("dtl_metric_type", "gauge")
+	return gaugeMetric.NewGaugeSeries().AddTag(pm.cfg.PrefixBaseLabel+"metric_type", "gauge")
 }
 
 func (pm *PrometheusMeter) NewTimer(metricName string) interfaces.Timer {
@@ -226,7 +226,7 @@ func (pm *PrometheusMeter) NewTimer(metricName string) interfaces.Timer {
 	if pm.cfg.BaseLabel == nil || pm.cfg.BaseLabel.MetricyType == "" {
 		return prom.NewTimer(metricName, pm, t)
 	}
-	return prom.NewTimer(metricName, pm, t).AddTag("dtl_metric_type", "histogram")
+	return prom.NewTimer(metricName, pm, t).AddTag(pm.cfg.PrefixBaseLabel+"metric_type", "histogram")
 }
 
 func (pm *PrometheusMeter) Components() interfaces.Components {

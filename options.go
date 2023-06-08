@@ -155,7 +155,7 @@ type prefixlabelNameOption struct {
 	prefixBaseLablename string
 }
 
-// WithBaseLabelNames 用于设置 基础标签名
+// WithBaseLabelNames 用于设置 基础标签名前缀
 func WithPrefixBaseLabelName(prefixLabelName string) interfaces.Option {
 	return &prefixlabelNameOption{
 		prefixBaseLablename: prefixLabelName,
@@ -163,7 +163,7 @@ func WithPrefixBaseLabelName(prefixLabelName string) interfaces.Option {
 }
 
 func (t *prefixlabelNameOption) ApplyConfig(c *config.Config) {
-	// c.PrefixBaseLabl = t.prefixBaseLablename
+	c.PrefixBaseLabel = t.prefixBaseLablename
 	c.BaseLabel = &config.BaseLabelCfg{
 		Appid:       t.prefixBaseLablename + "appid",
 		Env:         t.prefixBaseLablename + "env",
@@ -171,4 +171,20 @@ func (t *prefixlabelNameOption) ApplyConfig(c *config.Config) {
 		DataType:    t.prefixBaseLablename + "data_type",
 		MetricyType: t.prefixBaseLablename + "metricy_type",
 	}
+}
+
+type metricNameprefixOption struct {
+	prefixMetricName string
+}
+
+// WithPrefixMetricName 用于设置 中间件指标名前缀
+func WithPrefixMetricName(prefixMetricName string) interfaces.Option {
+	return &metricNameprefixOption{
+		prefixMetricName: prefixMetricName,
+	}
+}
+
+func (t *metricNameprefixOption) ApplyConfig(c *config.Config) {
+	c.PrefixMetricName = t.prefixMetricName
+
 }

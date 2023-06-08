@@ -9,11 +9,16 @@ const redisMetricName = "dacs_redis_request_seconds"
 
 func newRedisTimer(
 	meter interfaces.BaseMeter,
+	metricNamePrefix string,
 	cmd string,
 	resource string,
 	hasError bool,
 ) interfaces.ComponentTimer {
-	timer := meter.NewTimer(redisMetricName)
+	metricName := esTimerMetricName
+	if metricNamePrefix != "" {
+		metricName = metricNamePrefix + "redis_request_seconds"
+	}
+	timer := meter.NewTimer(metricName)
 	timer.AddTag(cmdKey, cmd)
 	timer.AddTag(resourceKey, labels.Filter.FilterResource(resource))
 	if hasError {

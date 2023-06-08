@@ -9,11 +9,16 @@ const kafkaProduceMetricName = "dacs_kafka_producer_seconds"
 
 func newKafkaTimer(
 	meter interfaces.BaseMeter,
+	metricNamePrefix string,
 	topic string,
 	resource string,
 	hasError bool,
 ) interfaces.ComponentTimer {
-	timer := meter.NewTimer(kafkaProduceMetricName)
+	metricName := esTimerMetricName
+	if metricNamePrefix != "" {
+		metricName = metricNamePrefix + "kafka_producer_seconds"
+	}
+	timer := meter.NewTimer(metricName)
 	timer.AddTag(topicKey, topic)
 	timer.AddTag(resourceKey, labels.Filter.FilterResource(resource))
 	if hasError {

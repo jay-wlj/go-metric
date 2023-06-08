@@ -18,6 +18,7 @@ func main() {
 		gometric.WithPrometheusPort(0),
 		gometric.WithAppID("watermark_server"),
 		gometric.WithPrefixBaseLabelName("dtl_"),
+		gometric.WithPrefixMetricName("hll_"),
 	)
 	r := gin.New()
 	r.Use(otelgin.HTTPServerTimerMiddleware())

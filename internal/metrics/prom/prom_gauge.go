@@ -106,8 +106,10 @@ func (pgs *GaugeSeries) WithTags(tags map[string]string) interfaces.Gauge {
 	baseLabel := config.GetConfig().BaseLabel
 	if baseLabel != nil && baseLabel.MetricyType != "" {
 		pgs.AddTag(baseLabel.MetricyType, "gauge")
+	} else {
+		pgs.AddTag(config.GetConfig().PrefixBaseLabel+"metric_type", "gauge")
 	}
-	// pgs.AddTag("dtl_metric_type", "gauge")
+
 	for k, v := range tags {
 		pgs.AddTag(k, v)
 	}

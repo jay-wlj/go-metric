@@ -9,10 +9,15 @@ const rmqConsumeMetricName = "dacs_rabbit_consumer_total"
 
 func newRMQConsumeCounter(
 	meter interfaces.BaseMeter,
+	metricNamePrefix string,
 	queue string,
 	resource string,
 ) interfaces.ComponentCounter {
-	counter := meter.NewCounter(rmqConsumeMetricName)
+	metricName := esTimerMetricName
+	if metricNamePrefix != "" {
+		metricName = metricNamePrefix + "rabbit_consumer_total"
+	}
+	counter := meter.NewCounter(metricName)
 	counter.AddTag(queueKey, queue)
 	counter.AddTag(resourceKey, labels.Filter.FilterResource(resource))
 	return newComponentCounter(counter)

@@ -10,13 +10,18 @@ const httpClientTimerMetricName = "dacs_service_http_call_seconds"
 
 func newHTTPClientTimer(
 	meter interfaces.BaseMeter,
+	metricNamePrefix string,
 	toAppId string,
 	serverHost string,
 	serverPath string,
 	ret string,
 	statusCode int,
 ) interfaces.ComponentTimer {
-	timer := meter.NewTimer(httpClientTimerMetricName)
+	metricName := esTimerMetricName
+	if metricNamePrefix != "" {
+		metricName = metricNamePrefix + "service_http_call_seconds"
+	}
+	timer := meter.NewTimer(metricName)
 
 	timer.AddTag(fromAppIdKey, config.GetConfig().AppId)
 	if toAppId == "" {

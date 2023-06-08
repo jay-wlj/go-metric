@@ -9,11 +9,16 @@ const mysqlMetricName = "dacs_mysql_request_seconds"
 
 func newMysqlTimer(
 	meter interfaces.BaseMeter,
+	metricNamePrefix string,
 	sql string,
 	resource string,
 	hasError bool,
 ) interfaces.ComponentTimer {
-	timer := meter.NewTimer(mysqlMetricName)
+	metricName := esTimerMetricName
+	if metricNamePrefix != "" {
+		metricName = metricNamePrefix + "mysql_request_seconds"
+	}
+	timer := meter.NewTimer(metricName)
 	cmd, sql, ok := labels.Filter.FilterSQL(sql)
 	// TODO
 	// 由于go 中无法 prepare sql，

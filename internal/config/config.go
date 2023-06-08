@@ -49,12 +49,13 @@ type BaseLabelCfg struct {
 }
 
 type Config struct {
-	PrometheusPort int // prometheus related config
-	Consul         *ConsulCfg
-	Push           *PushCfg // push cfg
-	MeterProvider  MeterProviderType
-	BaseLabel      *BaseLabelCfg
-	// PrefixBaseLabl   string
+	PrometheusPort   int // prometheus related config
+	Consul           *ConsulCfg
+	Push             *PushCfg // push cfg
+	MeterProvider    MeterProviderType
+	BaseLabel        *BaseLabelCfg
+	PrefixBaseLabel  string
+	PrefixMetricName string
 	LocalIP          string
 	Env              string
 	AppId            string

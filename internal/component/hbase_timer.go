@@ -9,10 +9,16 @@ const hbaseTimerMetricName = "dacs_hbase_request_seconds"
 
 func newHBaseTimer(
 	meter interfaces.BaseMeter,
+	metricNamePrefix,
 	cmd, resource string,
 	hasError bool,
 ) interfaces.ComponentTimer {
-	timer := meter.NewTimer(hbaseTimerMetricName)
+	metricName := esTimerMetricName
+	if metricNamePrefix != "" {
+		metricName = metricNamePrefix + "hbase_request_seconds"
+	}
+
+	timer := meter.NewTimer(metricName)
 	timer.AddTag(cmdKey, cmd)
 	timer.AddTag(resourceKey, labels.Filter.FilterResource(resource))
 	if hasError {

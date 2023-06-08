@@ -1,7 +1,9 @@
 package runtime
 
+import "github.com/jay-wlj/go-metric/internal/config"
+
 func dtlSystemNamespace(s string) string {
-	return "dtl_" + s
+	return config.GetConfig().PrefixMetricName + s
 }
 
 func memstatNamespace(s string) string {

@@ -9,10 +9,16 @@ const esTimerMetricName = "dacs_es_request_seconds"
 
 func newESTimer(
 	meter interfaces.BaseMeter,
+	metricNamePrefix,
 	api, index, resource string,
 	hasError bool,
 ) interfaces.ComponentTimer {
-	timer := meter.NewTimer(esTimerMetricName)
+	metricName := esTimerMetricName
+	if metricNamePrefix != "" {
+		metricName = metricNamePrefix + "es_request_seconds"
+	}
+
+	timer := meter.NewTimer(metricName)
 	timer.AddTag(apiKey, labels.Filter.FilterRoute(api))
 	timer.AddTag(indexKey, index)
 	timer.AddTag(resourceKey, labels.Filter.FilterResource(resource))
