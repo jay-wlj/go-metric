@@ -188,3 +188,18 @@ func (t *metricNameprefixOption) ApplyConfig(c *config.Config) {
 	c.PrefixMetricName = t.prefixMetricName
 
 }
+
+type histogramBoundariesOption struct {
+	histogramBoundaries []float64
+}
+
+// WithHistogramBoundaries 用于设置 histogram 分桶配置
+func WithHistogramBoundaries(boundaries []float64) interfaces.Option {
+	return &histogramBoundariesOption{
+		histogramBoundaries: boundaries,
+	}
+}
+
+func (t *histogramBoundariesOption) ApplyConfig(c *config.Config) {
+	c.HistogramBoundaries = t.histogramBoundaries
+}

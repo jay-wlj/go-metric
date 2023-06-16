@@ -34,8 +34,9 @@ const (
 
 var (
 	defaultHistogramBoundaries = []float64{
-		0.002, 0.004, 0.006, 0.012, 0.025, 0.050, 0.075, 0.1, 0.250, 0.500, 0.750, 1.200, 2.500, 5.000,
+		0.002, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 10,
 	}
+
 	_ interfaces.Meter = &PrometheusMeter{}
 )
 
@@ -64,6 +65,9 @@ func NewPrometheusMeter(cfg *config.Config) (*PrometheusMeter, error) {
 		Registry:                   cli_prom.NewRegistry(),
 		DefaultHistogramBoundaries: defaultHistogramBoundaries}
 
+	if len(cfg.HistogramBoundaries) > 0 {
+		prometheusCfg.DefaultHistogramBoundaries = cfg.HistogramBoundaries
+	}
 	ctrl := controller.New(
 		processor.NewFactory(
 			selector.NewWithHistogramDistribution(

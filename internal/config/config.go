@@ -49,24 +49,26 @@ type BaseLabelCfg struct {
 }
 
 type Config struct {
-	PrometheusPort   int // prometheus related config
-	Consul           *ConsulCfg
-	Push             *PushCfg // push cfg
-	MeterProvider    MeterProviderType
-	BaseLabel        *BaseLabelCfg
-	PrefixBaseLabel  string
-	PrefixMetricName string
-	LocalIP          string
-	Env              string
-	AppId            string
-	ReadRuntimeStats bool
-	InfoLogWrite     func(s string)
-	ErrorLogWrite    func(s string)
+	PrometheusPort      int // prometheus related config
+	Consul              *ConsulCfg
+	Push                *PushCfg // push cfg
+	MeterProvider       MeterProviderType
+	BaseLabel           *BaseLabelCfg
+	HistogramBoundaries []float64 // histgoram的分桶配置，默认0.002, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 10,
+	PrefixBaseLabel     string
+	PrefixMetricName    string
+	LocalIP             string
+	Env                 string
+	AppId               string
+	ReadRuntimeStats    bool
+	InfoLogWrite        func(s string)
+	ErrorLogWrite       func(s string)
 }
 
 func initSingletonConfig() {
 	singletonConfig = new(Config)
 	singletonConfig.Env = os.Getenv("dtl.env")
+
 	if singletonConfig.Env == "" {
 		singletonConfig.Env = defaultEnv
 	}
