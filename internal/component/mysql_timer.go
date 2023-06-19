@@ -14,7 +14,7 @@ func newMysqlTimer(
 	resource string,
 	hasError bool,
 ) interfaces.ComponentTimer {
-	metricName := esTimerMetricName
+	metricName := mysqlMetricName
 	if metricNamePrefix != "" {
 		metricName = metricNamePrefix + "mysql_request_seconds"
 	}

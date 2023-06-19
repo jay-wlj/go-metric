@@ -13,7 +13,7 @@ func newRMQConsumeCounter(
 	queue string,
 	resource string,
 ) interfaces.ComponentCounter {
-	metricName := esTimerMetricName
+	metricName := rmqConsumeMetricName
 	if metricNamePrefix != "" {
 		metricName = metricNamePrefix + "rabbit_consumer_total"
 	}

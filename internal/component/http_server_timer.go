@@ -14,7 +14,7 @@ func newHTTPServerTimer(
 	ret string,
 	statusCode int,
 ) interfaces.ComponentTimer {
-	metricName := esTimerMetricName
+	metricName := httpServerTimeMetricName
 	if metricNamePrefix != "" {
 		metricName = metricNamePrefix + "api_request_seconds"
 	}

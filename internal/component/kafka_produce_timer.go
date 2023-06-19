@@ -14,7 +14,7 @@ func newKafkaTimer(
 	resource string,
 	hasError bool,
 ) interfaces.ComponentTimer {
-	metricName := esTimerMetricName
+	metricName := kafkaProduceMetricName
 	if metricNamePrefix != "" {
 		metricName = metricNamePrefix + "kafka_producer_seconds"
 	}

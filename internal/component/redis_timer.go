@@ -14,7 +14,7 @@ func newRedisTimer(
 	resource string,
 	hasError bool,
 ) interfaces.ComponentTimer {
-	metricName := esTimerMetricName
+	metricName := redisMetricName
 	if metricNamePrefix != "" {
 		metricName = metricNamePrefix + "redis_request_seconds"
 	}

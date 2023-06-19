@@ -12,7 +12,7 @@ func newRMQProduceTimer(
 	metricNamePrefix, exchange, resource string,
 	hasError bool,
 ) interfaces.ComponentTimer {
-	metricName := esTimerMetricName
+	metricName := rmqProduceTimerMetricName
 	if metricNamePrefix != "" {
 		metricName = metricNamePrefix + "rabbit_producer_seconds"
 	}

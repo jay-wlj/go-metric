@@ -12,7 +12,7 @@ func newMongoTimer(
 	metricNamePrefix, command, collection, resource string,
 	hasError bool,
 ) interfaces.ComponentTimer {
-	metricName := esTimerMetricName
+	metricName := mongoTimerMetricName
 	if metricNamePrefix != "" {
 		metricName = metricNamePrefix + "mongo_request_seconds"
 	}

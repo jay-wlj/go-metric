@@ -13,7 +13,7 @@ func newHBaseTimer(
 	cmd, resource string,
 	hasError bool,
 ) interfaces.ComponentTimer {
-	metricName := esTimerMetricName
+	metricName := hbaseTimerMetricName
 	if metricNamePrefix != "" {
 		metricName = metricNamePrefix + "hbase_request_seconds"
 	}

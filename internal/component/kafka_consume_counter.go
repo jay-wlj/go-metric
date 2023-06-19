@@ -13,7 +13,7 @@ func newKafkaConsumeCounter(
 	topic string,
 	resource string,
 ) interfaces.ComponentCounter {
-	metricName := esTimerMetricName
+	metricName := kafkaConsumeMetricName
 	if metricNamePrefix != "" {
 		metricName = metricNamePrefix + "kafka_consumer_total"
 	}
