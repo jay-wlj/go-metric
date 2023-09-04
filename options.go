@@ -125,6 +125,7 @@ func (lwo *errLogWriterOption) ApplyConfig(c *config.Config) { c.ErrorLogWrite =
 
 type labelNameOption struct {
 	Appid       string
+	AppVer      string
 	Env         string
 	IP          string
 	DataType    string
@@ -132,9 +133,10 @@ type labelNameOption struct {
 }
 
 // WithBaseLabelNames 用于设置 基础标签名
-func WithBaseLabelNames(appid, env, ip, data_type string) interfaces.Option {
+func WithBaseLabelNames(appid, env, ip, data_type, app_ver string) interfaces.Option {
 	return &labelNameOption{
 		Appid:    appid,
+		AppVer:   app_ver,
 		Env:      env,
 		IP:       ip,
 		DataType: data_type,
@@ -144,6 +146,7 @@ func WithBaseLabelNames(appid, env, ip, data_type string) interfaces.Option {
 func (t *labelNameOption) ApplyConfig(c *config.Config) {
 	c.BaseLabel = &config.BaseLabelCfg{
 		Appid:       t.Appid,
+		AppVer:      t.AppVer,
 		Env:         t.Env,
 		IP:          t.IP,
 		DataType:    t.DataType,
@@ -203,3 +206,12 @@ func WithHistogramBoundaries(boundaries []float64) interfaces.Option {
 func (t *histogramBoundariesOption) ApplyConfig(c *config.Config) {
 	c.HistogramBoundaries = t.histogramBoundaries
 }
+
+type appverOption struct{ appVer string }
+
+func (ao *appverOption) ApplyConfig(c *config.Config) {
+	c.AppVer = ao.appVer
+}
+
+// WithAppVer 用于设置 appver
+func WithAppVer(appver string) interfaces.Option { return &appverOption{appVer: appver} }

@@ -42,6 +42,7 @@ type ConsulCfg struct {
 // base label names in all time series
 type BaseLabelCfg struct {
 	Appid       string
+	AppVer      string
 	Env         string
 	IP          string
 	DataType    string
@@ -60,6 +61,7 @@ type Config struct {
 	LocalIP             string
 	Env                 string
 	AppId               string
+	AppVer              string
 	ReadRuntimeStats    bool
 	InfoLogWrite        func(s string)
 	ErrorLogWrite       func(s string)
