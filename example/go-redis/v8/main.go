@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-redis/redismock/v8"
+	"github.com/go-redis/redismock/v9"
 
 	gometric "github.com/jay-wlj/go-metric"
 	"github.com/jay-wlj/go-metric/instrumentation/github.com/go-redis/redis/v8/otelredis"

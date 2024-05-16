@@ -37,3 +37,19 @@ func (l Labels) Hash() uint64 {
 	}
 	return xxhash.Sum64String(builder.String())
 }
+
+func (l Labels) Keys() []attribute.Key {
+	keys := make([]attribute.Key, 0, len(l))
+	for _, label := range l {
+		keys = append(keys, label.Key)
+	}
+	return keys
+}
+
+func (l Labels) Map() map[string]string {
+	m := make(map[string]string)
+	for _, label := range l {
+		m[string(label.Key)] = label.Value.AsString()
+	}
+	return m
+}

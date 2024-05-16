@@ -34,7 +34,7 @@ func (pc *Counter) Incr(delta float64) {
 	if pc.base.ExceedThreshold() {
 		return
 	}
-	pc.counterImpl.Add(context.TODO(), delta, pc.base.labels...)
+	pc.counterImpl.Add(context.TODO(), delta, metric.WithAttributes(pc.base.labels...))
 }
 
 func (pc *Counter) IncrOnce() {

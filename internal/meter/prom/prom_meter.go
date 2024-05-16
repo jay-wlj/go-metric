@@ -4,14 +4,11 @@ import (
 	"net/http"
 
 	cli_prom "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/otel/exporters/prometheus"
-	"go.opentelemetry.io/otel/metric"
-	otelglobal "go.opentelemetry.io/otel/metric/global"
-	"go.opentelemetry.io/otel/sdk/export/metric/aggregation"
-	"go.opentelemetry.io/otel/sdk/metric/aggregator/histogram"
-	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
-	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
-	selector "go.opentelemetry.io/otel/sdk/metric/selector/simple"
+	api "go.opentelemetry.io/otel/metric"
+
+	"go.opentelemetry.io/otel/sdk/metric"
 
 	"sync"
 	"sync/atomic"
@@ -45,7 +42,7 @@ type PrometheusMeter struct {
 	running          int32
 	onCh             chan struct{} // receiving start signal
 	offCh            chan struct{} // receiving stop signal
-	meter            metric.Meter
+	meter            api.Meter
 	runtimeCollector runtime.Collector
 	// http server
 	servers []HTTPServer
@@ -57,55 +54,76 @@ type PrometheusMeter struct {
 	gaugesLock     sync.RWMutex
 	gaugesRegistry map[string]*prom.GaugeMetric // observe
 
-	handler http.HandlerFunc // http handler func for metrics
+	handler    http.Handler      // http handler func for metrics
+	publicTags map[string]string // public labels
 }
 
 func NewPrometheusMeter(cfg *config.Config) (*PrometheusMeter, error) {
-	prometheusCfg := prometheus.Config{
-		Registry:                   cli_prom.NewRegistry(),
-		DefaultHistogramBoundaries: defaultHistogramBoundaries}
+	// prometheusCfg := prometheus.Config{
+	// 	Registry:                   cli_prom.NewRegistry(),
+	// 	DefaultHistogramBoundaries: defaultHistogramBoundaries}
 
-	if len(cfg.HistogramBoundaries) > 0 {
-		prometheusCfg.DefaultHistogramBoundaries = cfg.HistogramBoundaries
-	}
-	ctrl := controller.New(
-		processor.NewFactory(
-			selector.NewWithHistogramDistribution(
-				histogram.WithExplicitBoundaries(prometheusCfg.DefaultHistogramBoundaries),
-			),
-			aggregation.CumulativeTemporalitySelector(),
-			processor.WithMemory(true),
-		),
-		controller.WithResource(config.DtlResource()),
-	)
-	exporter, err := prometheus.New(prometheusCfg, ctrl)
+	// if len(cfg.HistogramBoundaries) > 0 {
+	// 	prometheusCfg.DefaultHistogramBoundaries = cfg.HistogramBoundaries
+	// }
+	// ctrl := controller.New(
+	// 	processor.NewFactory(
+	// 		selector.NewWithHistogramDistribution(
+	// 			histogram.WithExplicitBoundaries(prometheusCfg.DefaultHistogramBoundaries),
+	// 		),
+	// 		aggregation.CumulativeTemporalitySelector(),
+	// 		processor.WithMemory(true),
+	// 	),
+	// 	controller.WithResource(config.DtlResource()),
+	// )
+	// exporter, err := prometheus.New(prometheusCfg, ctrl)
+	registy := cli_prom.NewRegistry()
+	exporter, err := prometheus.New(
+		prometheus.WithRegisterer(registy),
+		// prometheus.WithoutUnits(), // 对于带上单位(时间,字节等)的指标值，指标名是否要自动加上单位后缀，如counter类型的指标名request.duration，带有seconds单位，则指标名会变成request_duration_seconds_total
+		// prometheus.WithoutCounterSuffixes(),	// 对counter类型的指标，是否要去掉加上_total后缀
+		// prometheus.WithAggregationSelector(metrics)
+		// prometheus.WithResourceAsConstantLabels(attribute.NewAllowKeysFilter(config.DtlLabels().Keys()...))
+		prometheus.WithoutScopeInfo())
+
 	if err != nil {
 		cfg.WriteErrorOrNot("failed to initialize Prometheus Meter: " + err.Error())
 		return nil, err
 	}
-	otelglobal.SetMeterProvider(exporter.MeterProvider())
 
+	provider := metric.NewMeterProvider(
+		metric.WithResource(config.DtlResource()),
+		metric.WithReader(exporter),
+		metric.WithView(metric.NewView(
+			metric.Instrument{Kind: metric.InstrumentKindHistogram}, // histogram类型指标指标统一bucket桶
+			metric.Stream{Aggregation: metric.AggregationExplicitBucketHistogram{
+				Boundaries: cfg.HistogramBoundaries,
+			}},
+		)))
+	meter := provider.Meter(PrometheusMeterName,
+		// api.WithInstrumentationAttributes(config.DtlLabels()...),
+		api.WithInstrumentationVersion(sdkVersion))
+
+	handler := promhttp.HandlerFor(registy, promhttp.HandlerOpts{})
 	pm := PrometheusMeter{
 		cfg:     cfg,
 		running: 1,
 		onCh:    make(chan struct{}),
 		offCh:   make(chan struct{}),
 		// server:     newPromHTTPServer(cfg, exporter.ServeHTTP),
-		allMetrics: make(map[string]*seriesGroup),
-		meter: otelglobal.Meter(
-			PrometheusMeterName,
-			metric.WithInstrumentationVersion(sdkVersion),
-		),
+		allMetrics:     make(map[string]*seriesGroup),
+		meter:          meter,
 		gaugesRegistry: make(map[string]*prom.GaugeMetric),
-		handler:        exporter.ServeHTTP,
+		handler:        handler,
+		publicTags:     config.DtlLabels().Map(),
 	}
 
 	// push方式不需要exporter
 	if cfg.PrometheusPort > 0 {
-		pm.servers = append(pm.servers, newPromHTTPServer(cfg, exporter.ServeHTTP))
+		pm.servers = append(pm.servers, newPromHTTPServer(cfg, pm.GetHandlerFunc()))
 	}
 	if cfg.Push != nil {
-		pm.servers = append(pm.servers, newPromPushServer(cfg, prometheusCfg.Registry))
+		pm.servers = append(pm.servers, newPromPushServer(cfg, registy))
 	}
 
 	pm.runtimeCollector = runtime.NewCollector(cfg, &pm)
@@ -121,6 +139,14 @@ func NewPrometheusMeter(cfg *config.Config) (*PrometheusMeter, error) {
 
 func (pm *PrometheusMeter) GetHandler() http.Handler {
 	return pm.handler
+}
+
+func (pm *PrometheusMeter) GetHandlerFunc() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if pm.handler != nil {
+			pm.handler.ServeHTTP(w, r)
+		}
+	}
 }
 
 func (pm *PrometheusMeter) WithRunning(on bool) {
@@ -177,12 +203,12 @@ func (pm *PrometheusMeter) NewCounter(metricName string) interfaces.Counter {
 	if atomic.LoadInt32(&pm.running) == 0 {
 		return &nop.Counter
 	}
-	c, err := pm.meter.NewFloat64Counter(metricName)
+	c, err := pm.meter.Float64Counter(metricName)
 	if err != nil {
 		return &nop.Counter
 	}
 	if pm.cfg.BaseLabel == nil || pm.cfg.BaseLabel.MetricyType == "" {
-		return prom.NewCounter(metricName, pm, c)
+		return prom.NewCounter(metricName, pm, c).WithTags(pm.publicTags)
 	}
 	return prom.NewCounter(metricName, pm, c).AddTag(pm.cfg.PrefixBaseLabel+"metric_type", "counter")
 }
@@ -196,7 +222,7 @@ func (pm *PrometheusMeter) NewGauge(metricName string) interfaces.Gauge {
 	pm.gaugesLock.RUnlock()
 	if ok {
 		if pm.cfg.BaseLabel == nil || pm.cfg.BaseLabel.MetricyType == "" {
-			return gaugeMetric.NewGaugeSeries()
+			return gaugeMetric.NewGaugeSeries().WithTags(pm.publicTags)
 		}
 		return gaugeMetric.NewGaugeSeries().AddTag(pm.cfg.PrefixBaseLabel+"metric_type", "gauge")
 	}
@@ -214,7 +240,7 @@ func (pm *PrometheusMeter) NewGauge(metricName string) interfaces.Gauge {
 		pm.gaugesRegistry[metricName] = gaugeMetric
 	}
 	if pm.cfg.BaseLabel == nil || pm.cfg.BaseLabel.MetricyType == "" {
-		return gaugeMetric.NewGaugeSeries()
+		return gaugeMetric.NewGaugeSeries().WithTags(pm.publicTags)
 	}
 	return gaugeMetric.NewGaugeSeries().AddTag(pm.cfg.PrefixBaseLabel+"metric_type", "gauge")
 }
@@ -223,12 +249,13 @@ func (pm *PrometheusMeter) NewTimer(metricName string) interfaces.Timer {
 	if atomic.LoadInt32(&pm.running) == 0 {
 		return &nop.Timer
 	}
-	t, err := pm.meter.NewFloat64Histogram(metricName)
+	// t, err := pm.meter.Float64Histogram(metricName, api.WithExplicitBucketBoundaries(pm.cfg.HistogramBoundaries...))
+	t, err := pm.meter.Float64Histogram(metricName)
 	if err != nil {
 		return &nop.Timer
 	}
 	if pm.cfg.BaseLabel == nil || pm.cfg.BaseLabel.MetricyType == "" {
-		return prom.NewTimer(metricName, pm, t)
+		return prom.NewTimer(metricName, pm, t).WithTags(pm.publicTags)
 	}
 	return prom.NewTimer(metricName, pm, t).AddTag(pm.cfg.PrefixBaseLabel+"metric_type", "histogram")
 }
