@@ -19,7 +19,7 @@ type GaugeMetric struct {
 	metricName string
 	lock       sync.Mutex
 	series     map[uint64]*GaugeSeries
-	observer   metric.Float64GaugeObserver
+	observer   metric.Float64ObservableGauge
 	checker    metrics.Checker
 }
 
@@ -29,7 +29,7 @@ func NewGaugeMetric(metricName string, meter metric.Meter, checker metrics.Check
 		series:     make(map[uint64]*GaugeSeries),
 		checker:    checker,
 	}
-	observer, err := meter.NewFloat64GaugeObserver(metricName, gm.ObserveAll)
+	observer, err := meter.Float64ObservableGauge(metricName, metric.WithFloat64Callback(metric.Float64Callback(gm.ObserveAll)))
 	if err != nil {
 		return nil, err
 	}
@@ -38,13 +38,14 @@ func NewGaugeMetric(metricName string, meter metric.Meter, checker metrics.Check
 }
 
 // ObserveAll is a metric-level observation to gather all time-series
-func (gm *GaugeMetric) ObserveAll(_ context.Context, result metric.Float64ObserverResult) {
+func (gm *GaugeMetric) ObserveAll(_ context.Context, result metric.Float64Observer) error {
 	gm.lock.Lock()
 	defer gm.lock.Unlock()
 
 	for _, series := range gm.series {
-		result.Observe(series.value, series.labels...)
+		result.Observe(series.value, metric.WithAttributes(series.labels...))
 	}
+	return nil
 }
 
 func (gm *GaugeMetric) NewGaugeSeries() interfaces.Gauge {

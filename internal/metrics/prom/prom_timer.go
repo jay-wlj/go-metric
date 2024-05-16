@@ -54,7 +54,7 @@ func (pt *Timer) UpdateInSeconds(s float64) {
 	if pt.base.ExceedThreshold() {
 		return
 	}
-	pt.timerImpl.Record(context.TODO(), s, pt.base.labels...)
+	pt.timerImpl.Record(context.TODO(), s, metric.WithAttributes(pt.base.labels...))
 }
 
 func (pt *Timer) AddTag(key, value string) interfaces.Timer {

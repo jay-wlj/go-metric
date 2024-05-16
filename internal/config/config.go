@@ -153,6 +153,34 @@ func (cfg *Config) WriteErrorOrNot(s string) {
 }
 
 func (cfg *Config) getLocalIP() string {
+
+	ip := func() string {
+		itfer, err := net.InterfaceByName("eth0")
+		if itfer != nil {
+			return ""
+		}
+
+		// 获取接口的 IP 地址
+		addrs, err := itfer.Addrs()
+		if err != nil {
+			return ""
+		}
+
+		// 返回 IP 地址
+		for _, addr := range addrs {
+			if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+				if ipnet.IP.To4() != nil {
+					return ipnet.IP.String()
+				}
+			}
+		}
+		return ""
+	}()
+
+	if ip != "" {
+		return ip
+	}
+
 	addrs, err := net.InterfaceAddrs()
 
 	if err != nil {
